@@ -381,7 +381,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
      */
     private static final int NUMBER_OF_RESERVED_CHANNEL = 3;
 
-    private static final int MAX_MESSAGE_WAITING = 4;
+    /**
+     * Log the congestion entry if there are more than this amount messages waiting
+     */
+    private static final int MIN_MESSAGE_FOR_LOGGING_WAITING_MESSAGE = 4;
 
     /**
      * Creates anonymous RTMP connection without scope.
@@ -572,7 +575,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
                 }
                 try {
                     // schedule with an initial delay of now + 2s to prevent ping messages during connect post processes
-                    Date delayUntilDate = Date.from(Instant.now().plusMillis(2000));
+                    Date delayUntilDate = Date.from(Instant.now().plusMillis(DELAY_UNTIL_DATE));
                     if (isDebug) {
                         log.debug("Keep alive delayed until: {}", delayUntilDate);
                     }
@@ -1640,7 +1643,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
             }
         } else {
             // don't log the congestion entry unless there are more than X messages waiting
-            if (getPendingMessages() > MAX_MESSAGE_WAITING) {
+            if (getPendingMessages() > MIN_MESSAGE_FOR_LOGGING_WAITING_MESSAGE) {
                 int pingRtt = (int) ((now & 0xffffffffL)) - pongValue;
                 log.info("Pong delayed: session=[{}], ping response took [{} ms] to arrive. Connection may be congested, or loopback", new Object[] { getSessionId(), pingRtt });
             }
