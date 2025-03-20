@@ -377,6 +377,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
     protected volatile LinkedTransferQueue<Packet> receivedPacketQueue = new LinkedTransferQueue<>();
 
     /**
+     * To know where to stop our number of channel
+     */
+    private final int NUMBER_OF_RESERVED_CHANNEL = 3;
+    
+    /**
      * Creates anonymous RTMP connection without scope.
      *
      * @param type
