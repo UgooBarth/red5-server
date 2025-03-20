@@ -379,8 +379,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
     /**
      * To know where to stop our number of channel
      */
-    private final int NUMBER_OF_RESERVED_CHANNEL = 3;
-    
+    private static final int NUMBER_OF_RESERVED_CHANNEL = 3;
+
+    private static final int MAX_MESSAGE_WAITING = 4;
+
     /**
      * Creates anonymous RTMP connection without scope.
      *
@@ -640,7 +642,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
      * @return Next available channel id
      */
     public int getNextAvailableChannelId() {
-        int result = 4;
+        int result = NUMBER_OF_RESERVED_CHANNEL +1;
         while (isChannelUsed(result)) {
             result++;
         }
@@ -902,7 +904,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
      */
     public IClientStream getStreamByChannelId(int channelId) {
         // channels 2 and 3 are "special" and don't have an IClientStream associated
-        if (channelId < 4) {
+        if (channelId < NUMBER_OF_RESERVED_CHANNEL +1) {
             return null;
         }
         Number streamId = getStreamIdForChannelId(channelId);
@@ -1638,7 +1640,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
             }
         } else {
             // don't log the congestion entry unless there are more than X messages waiting
-            if (getPendingMessages() > 4) {
+            if (getPendingMessages() > MAX_MESSAGE_WAITING) {
                 int pingRtt = (int) ((now & 0xffffffffL)) - pongValue;
                 log.info("Pong delayed: session=[{}], ping response took [{} ms] to arrive. Connection may be congested, or loopback", new Object[] { getSessionId(), pingRtt });
             }
