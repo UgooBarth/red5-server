@@ -878,10 +878,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
      * @return ID of stream that channel belongs to
      */
     public Number getStreamIdForChannelId(int channelId) {
-        if (channelId < 4) {
+        if (channelId < NUMBER_OF_RESERVED_CHANNEL +1) {
             return 0;
         }
-        Number streamId = Math.floor(((channelId - 4) / 5.0d) + 1);
+        Number streamId = Math.floor(((channelId - NUMBER_OF_RESERVED_CHANNEL +1) / 5.0d) + 1);
         if (isTrace) {
             log.trace("Stream id: {} requested for channel id: {}", streamId, channelId);
         }
