@@ -386,6 +386,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
      */
     private static final int MIN_MESSAGE_FOR_LOGGING_WAITING_MESSAGE = 4;
 
+
+    /**
+     * Used to schedule with an initial delay of 2s to prevent ping messages during connect post processes
+     */
+    private static final long DELAY_UNTIL_DATE = 2000;
+
     /**
      * Creates anonymous RTMP connection without scope.
      *
