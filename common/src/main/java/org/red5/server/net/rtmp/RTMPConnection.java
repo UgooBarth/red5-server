@@ -1468,67 +1468,72 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         // create the future for processing the queue as needed
         if (receivedPacketFuture == null) {
             final RTMPConnection conn = this;
-            receivedPacketFuture = receivedPacketExecutor.submit(() -> {
-                Thread.currentThread().setName(String.format("RTMPRecv@%s", sessionId));
-                try {
-                    do {
-                        // DTS appears to be off only by < 10ms
-                        Packet p = receivedPacketQueue.poll(maxPollTimeout, TimeUnit.MILLISECONDS); // wait for packet with timeout
-                        if (p != null) {
-                            if (isTrace) {
-                                log.trace("Handle received packet: {}", p);
-                            }
-                            // decrement the queue size
-                            receivedQueueSizeUpdater.decrementAndGet(this);
-                            // call directly to the handler
-                            //handler.messageReceived(conn, p);
-                            // create a task to handle the packet
-                            ReceivedMessageTask task = new ReceivedMessageTask(conn, p);
-                            try {
-                                @SuppressWarnings("unchecked")
-                                ListenableFuture<Packet> future = (ListenableFuture<Packet>) executor.submitListenable(new ListenableFutureTask<Packet>(task));
-                                future.addCallback(new ListenableFutureCallback<Packet>() {
+            premierePartieExtracted(packet, conn);//TODO
+        }
+    }
 
-                                    long startTime = System.currentTimeMillis();
+    private void premierePartieExtracted(Packet packet, RTMPConnection conn) {
+        receivedPacketFuture = receivedPacketExecutor.submit(() -> {
+            Thread.currentThread().setName(String.format("RTMPRecv@%s", sessionId));
+            try {
+                do {
+                    // DTS appears to be off only by < 10ms
+                    Packet p = receivedPacketQueue.poll(maxPollTimeout, TimeUnit.MILLISECONDS); // wait for packet with timeout
+                    if (p != null) {
+                        deuxièmePartieExtracted(packet, conn, p);//TODO
+                    }
+                } while (state.getState() < RTMP.STATE_ERROR); // keep processing unless we pass the error state
+            } catch (InterruptedException e) {
+                log.debug("Interrupted while waiting for message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
+            } catch (Exception e) {
+                log.error("Error processing received message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
+            } finally {
+                receivedPacketFuture = null;
+                receivedPacketQueue.clear();
+            }
+        });
+    }
 
-                                    int getProcessingTime() {
-                                        return (int) (System.currentTimeMillis() - startTime);
-                                    }
+    private void deuxièmePartieExtracted(Packet packet, RTMPConnection conn, Packet p) {
+        if (isTrace) {
+            log.trace("Handle received packet: {}", p);
+        }
+        // decrement the queue size
+        receivedQueueSizeUpdater.decrementAndGet(this);
+        // call directly to the handler
+        //handler.messageReceived(conn, p);
+        // create a task to handle the packet
+        ReceivedMessageTask task = new ReceivedMessageTask(conn, p);
+        try {
+            ListenableFuture<Packet> future = (ListenableFuture<Packet>) executor.submitListenable(new ListenableFutureTask<Packet>(task));
+            future.addCallback(new ListenableFutureCallback<Packet>() {
 
-                                    @SuppressWarnings("null")
-                                    public void onFailure(Throwable t) {
-                                        log.warn("onFailure - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
-                                    }
+                long startTime = System.currentTimeMillis();
 
-                                    @SuppressWarnings("null")
-                                    public void onSuccess(Packet packet) {
-                                        log.debug("onSuccess - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
-                                    }
-
-                                });
-                            } catch (TaskRejectedException tre) {
-                                Throwable[] suppressed = tre.getSuppressed();
-                                for (Throwable t : suppressed) {
-                                    log.warn("Suppressed exception on {}", task, t);
-                                }
-                                log.info("Rejected task: {}", task);
-                            } catch (Throwable e) {
-                                log.warn("Incoming message failed task: {}", task, e);
-                                if (isDebug) {
-                                    log.debug("Execution rejected on {} - {} lock permits - decode: {} encode: {}", getSessionId(), RTMP.states[getStateCode()], decoderLock.availablePermits(), encoderLock.availablePermits());
-                                }
-                            }
-                        }
-                    } while (state.getState() < RTMP.STATE_ERROR); // keep processing unless we pass the error state
-                } catch (InterruptedException e) {
-                    log.debug("Interrupted while waiting for message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
-                } catch (Exception e) {
-                    log.error("Error processing received message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
-                } finally {
-                    receivedPacketFuture = null;
-                    receivedPacketQueue.clear();
+                int getProcessingTime() {
+                    return (int) (System.currentTimeMillis() - startTime);
                 }
+
+                public void onFailure(Throwable t) {
+                    log.warn("onFailure - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
+                }
+
+                public void onSuccess(Packet packet) {
+                    log.debug("onSuccess - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
+                }
+
             });
+        } catch (TaskRejectedException tre) {
+            Throwable[] suppressed = tre.getSuppressed();
+            for (Throwable t : suppressed) {
+                log.warn("Suppressed exception on {}", task, t);
+            }
+            log.info("Rejected task: {}", task);
+        } catch (Throwable e) {
+            log.warn("Incoming message failed task: {}", task, e);
+            if (isDebug) {
+                log.debug("Execution rejected on {} - {} lock permits - decode: {} encode: {}", getSessionId(), RTMP.states[getStateCode()], decoderLock.availablePermits(), encoderLock.availablePermits());
+            }
         }
     }
 
