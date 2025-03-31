@@ -1024,8 +1024,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
             IStreamService streamService = (IStreamService) ScopeUtils.getScopeService(scope, IStreamService.class, StreamService.class);
             if (streamService != null) {
                 //in the end of call streamService.deleteStream we do streams.remove
-                for (Iterator<IClientStream> it = streams.values().iterator(); it.hasNext();) {
-                    IClientStream stream = it.next();
+                for (IClientStream stream : streams.values()) {
                     if (isDebug) {
                         log.debug("Closing stream: {}", stream.getStreamId());
                     }
