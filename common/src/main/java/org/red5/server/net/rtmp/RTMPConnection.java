@@ -1008,17 +1008,16 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
             // update our state
             if (state != null) {
                 final byte s = getStateCode();
-                switch (s) {
-                    case RTMP.STATE_DISCONNECTED:
-                        if (isDebug) {
-                            log.debug("Already disconnected");
-                        }
-                        return;
-                    default:
-                        if (isDebug) {
-                            log.debug("State: {}", RTMP.states[s]);
-                        }
-                        setStateCode(RTMP.STATE_DISCONNECTING);
+                if (s == RTMP.STATE_DISCONNECTED) {
+                    if (isDebug) {
+                        log.debug("Already disconnected");
+                    }
+                }
+                else {
+                    if (isDebug) {
+                        log.debug("State: {}", RTMP.states[s]);
+                    }
+                    setStateCode(RTMP.STATE_DISCONNECTING);
                 }
             }
             Red5.setConnectionLocal(this);
