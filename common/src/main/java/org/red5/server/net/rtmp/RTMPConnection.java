@@ -1463,14 +1463,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
             // increment the queue size
             receivedQueueSizeUpdater.incrementAndGet(this);
         }
-        // create the future for processing the queue as needed
+        // create the future package for processing the queue as needed
         if (receivedPacketFuture == null) {
             final RTMPConnection conn = this;
-            premierePartieExtracted(packet, conn);//TODO
+            prepareFuturePackage(packet, conn);//TODO
         }
     }
 
-    private void premierePartieExtracted(Packet packet, RTMPConnection conn) {
+    private void prepareFuturePackage(Packet packet, RTMPConnection conn) {
         receivedPacketFuture = receivedPacketExecutor.submit(() -> {
             Thread.currentThread().setName(String.format("RTMPRecv@%s", sessionId));
             try {
@@ -1478,7 +1478,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
                     // DTS appears to be off only by < 10ms
                     Packet p = receivedPacketQueue.poll(maxPollTimeout, TimeUnit.MILLISECONDS); // wait for packet with timeout
                     if (p != null) {
-                        deuxièmePartieExtracted(packet, conn, p);//TODO
+                        createFuturePackage(packet, conn, p);//TODO
                     }
                 } while (state.getState() < RTMP.STATE_ERROR); // keep processing unless we pass the error state
             } catch (InterruptedException e) {
@@ -1492,7 +1492,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         });
     }
 
-    private void deuxièmePartieExtracted(Packet packet, RTMPConnection conn, Packet p) {
+    private void createFuturePackage(Packet packet, RTMPConnection conn, Packet p) {
         if (isTrace) {
             log.trace("Handle received packet: {}", p);
         }
