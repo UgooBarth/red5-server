@@ -334,30 +334,7 @@ public class StreamService implements IStreamService {
         // pull querystring if it exists and add to the connection; similar to publish
         Map<String, String> params = null;
         if (name != null && name.contains("?")) {
-            // read and utilize the query string values
-            params = new HashMap<>();
-            String queryString = name;
-            // check if we start with '?' or not
-            if (name.charAt(0) != '?') {
-                queryString = name.split("\\?")[1];
-            } else if (name.charAt(0) == '?') {
-                queryString = name.substring(1);
-            }
-            // set the query string in the connection
-            conn.setAttribute("queryString", queryString);
-            // now break up into key/value blocks
-            String[] kvs = queryString.split("&");
-            // take each key/value block and break into its key value parts
-            for (String kv : kvs) {
-                String[] split = kv.split("=");
-                String key = split[0], value = split[1];
-                // add to the map which goes on the stream post-security checking
-                params.put(key, value);
-                // set the parameter in the connection
-                conn.setAttribute(key, value);
-            }
-            // grab the streams name
-            name = name.substring(0, name.indexOf("?"));
+            name = changeName(name, conn);
         }
         if (conn instanceof IStreamCapableConnection) {
             IScope scope = conn.getScope();
@@ -441,6 +418,35 @@ public class StreamService implements IStreamService {
         } else {
             log.debug("Connection was not stream capable");
         }
+    }
+
+    private static String changeName(String name, IConnection conn) {
+        Map<String, String> params;
+        // read and utilize the query string values
+        params = new HashMap<>();
+        String queryString = name;
+        // check if we start with '?' or not
+        if (name.charAt(0) != '?') {
+            queryString = name.split("\\?")[1];
+        } else if (name.charAt(0) == '?') {
+            queryString = name.substring(1);
+        }
+        // set the query string in the connection
+        conn.setAttribute("queryString", queryString);
+        // now break up into key/value blocks
+        String[] kvs = queryString.split("&");
+        // take each key/value block and break into its key value parts
+        for (String kv : kvs) {
+            String[] split = kv.split("=");
+            String key = split[0], value = split[1];
+            // add to the map which goes on the stream post-security checking
+            params.put(key, value);
+            // set the parameter in the connection
+            conn.setAttribute(key, value);
+        }
+        // grab the streams name
+        name = name.substring(0, name.indexOf("?"));
+        return name;
     }
 
     /** {@inheritDoc} */
@@ -657,31 +663,7 @@ public class StreamService implements IStreamService {
         IConnection conn = Red5.getConnectionLocal();
         Map<String, String> params = null;
         if (name != null && name.contains("?")) {
-            // read and utilize the query string values
-            params = new HashMap<>();
-            String queryString = name;
-            // check if we start with '?' or not
-            if (name.charAt(0) != '?') {
-                queryString = name.split("\\?")[1];
-            } else if (name.charAt(0) == '?') {
-                queryString = name.substring(1);
-            }
-            // set the query string in the connection
-            conn.setAttribute("queryString", queryString);
-            // now break up into key/value blocks
-            String[] kvs = queryString.split("&");
-            // take each key/value block and break into its key value parts
-            for (String kv : kvs) {
-                String[] split = kv.split("=");
-                String key = split[0], value = split[1];
-                // add to the map which goes on the stream post-security checking
-                params.put(key, value);
-                // set the parameter in the connection
-                conn.setAttribute(key, value);
-            }
-            // grab the streams name
-            name = name.substring(0, name.indexOf("?"));
-            log.debug("publish called with name: {} and mode: {}; query string: {}", name, mode, queryString);
+            name = changeName(name, conn);
         } else {
             log.debug("publish called with name: {} and mode: {}", name, mode);
         }
