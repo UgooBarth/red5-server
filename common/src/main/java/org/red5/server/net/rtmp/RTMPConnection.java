@@ -380,7 +380,16 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
      */
     private static final int NUMBER_OF_RESERVED_CHANNEL = 3;
 
-    private static final int MAX_MESSAGE_WAITING = 4;
+    /**
+     * Log the congestion entry if there are more than this amount messages waiting
+     */
+    private static final int MIN_MESSAGE_FOR_LOGGING_WAITING_MESSAGE = 4;
+
+
+    /**
+     * Used to schedule with an initial delay of 2s to prevent ping messages during connect post processes
+     */
+    private static final long DELAY_UNTIL_DATE = 2000;
 
     /**
      * Creates anonymous RTMP connection without scope.
@@ -571,7 +580,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
                 }
                 try {
                     // schedule with an initial delay of now + 2s to prevent ping messages during connect post processes
-                    Date delayUntilDate = Date.from(Instant.now().plusMillis(2000));
+                    Date delayUntilDate = Date.from(Instant.now().plusMillis(DELAY_UNTIL_DATE));
                     if (isDebug) {
                         log.debug("Keep alive delayed until: {}", delayUntilDate);
                     }
@@ -1453,70 +1462,75 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
             // increment the queue size
             receivedQueueSizeUpdater.incrementAndGet(this);
         }
-        // create the future for processing the queue as needed
+        // create the future package for processing the queue as needed
         if (receivedPacketFuture == null) {
             final RTMPConnection conn = this;
-            receivedPacketFuture = receivedPacketExecutor.submit(() -> {
-                Thread.currentThread().setName(String.format("RTMPRecv@%s", sessionId));
-                try {
-                    do {
-                        // DTS appears to be off only by < 10ms
-                        Packet p = receivedPacketQueue.poll(maxPollTimeout, TimeUnit.MILLISECONDS); // wait for packet with timeout
-                        if (p != null) {
-                            if (isTrace) {
-                                log.trace("Handle received packet: {}", p);
-                            }
-                            // decrement the queue size
-                            receivedQueueSizeUpdater.decrementAndGet(this);
-                            // call directly to the handler
-                            //handler.messageReceived(conn, p);
-                            // create a task to handle the packet
-                            ReceivedMessageTask task = new ReceivedMessageTask(conn, p);
-                            try {
-                                @SuppressWarnings("unchecked")
-                                ListenableFuture<Packet> future = (ListenableFuture<Packet>) executor.submitListenable(new ListenableFutureTask<Packet>(task));
-                                future.addCallback(new ListenableFutureCallback<Packet>() {
+            prepareFuturePackage(packet, conn);//TODO
+        }
+    }
 
-                                    long startTime = System.currentTimeMillis();
+    private void prepareFuturePackage(Packet packet, RTMPConnection conn) {
+        receivedPacketFuture = receivedPacketExecutor.submit(() -> {
+            Thread.currentThread().setName(String.format("RTMPRecv@%s", sessionId));
+            try {
+                do {
+                    // DTS appears to be off only by < 10ms
+                    Packet p = receivedPacketQueue.poll(maxPollTimeout, TimeUnit.MILLISECONDS); // wait for packet with timeout
+                    if (p != null) {
+                        createFuturePackage(packet, conn, p);//TODO
+                    }
+                } while (state.getState() < RTMP.STATE_ERROR); // keep processing unless we pass the error state
+            } catch (InterruptedException e) {
+                log.debug("Interrupted while waiting for message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
+            } catch (Exception e) {
+                log.error("Error processing received message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
+            } finally {
+                receivedPacketFuture = null;
+                receivedPacketQueue.clear();
+            }
+        });
+    }
 
-                                    int getProcessingTime() {
-                                        return (int) (System.currentTimeMillis() - startTime);
-                                    }
+    private void createFuturePackage(Packet packet, RTMPConnection conn, Packet p) {
+        if (isTrace) {
+            log.trace("Handle received packet: {}", p);
+        }
+        // decrement the queue size
+        receivedQueueSizeUpdater.decrementAndGet(this);
+        // call directly to the handler
+        //handler.messageReceived(conn, p);
+        // create a task to handle the packet
+        ReceivedMessageTask task = new ReceivedMessageTask(conn, p);
+        try {
+            ListenableFuture<Packet> future = (ListenableFuture<Packet>) executor.submitListenable(new ListenableFutureTask<Packet>(task));
+            future.addCallback(new ListenableFutureCallback<Packet>() {
 
-                                    @SuppressWarnings("null")
-                                    public void onFailure(Throwable t) {
-                                        log.warn("onFailure - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
-                                    }
+                long startTime = System.currentTimeMillis();
 
-                                    @SuppressWarnings("null")
-                                    public void onSuccess(Packet packet) {
-                                        log.debug("onSuccess - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
-                                    }
-
-                                });
-                            } catch (TaskRejectedException tre) {
-                                Throwable[] suppressed = tre.getSuppressed();
-                                for (Throwable t : suppressed) {
-                                    log.warn("Suppressed exception on {}", task, t);
-                                }
-                                log.info("Rejected task: {}", task);
-                            } catch (Throwable e) {
-                                log.warn("Incoming message failed task: {}", task, e);
-                                if (isDebug) {
-                                    log.debug("Execution rejected on {} - {} lock permits - decode: {} encode: {}", getSessionId(), RTMP.states[getStateCode()], decoderLock.availablePermits(), encoderLock.availablePermits());
-                                }
-                            }
-                        }
-                    } while (state.getState() < RTMP.STATE_ERROR); // keep processing unless we pass the error state
-                } catch (InterruptedException e) {
-                    log.debug("Interrupted while waiting for message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
-                } catch (Exception e) {
-                    log.error("Error processing received message {} state: {}", sessionId, RTMP.states[getStateCode()], e);
-                } finally {
-                    receivedPacketFuture = null;
-                    receivedPacketQueue.clear();
+                int getProcessingTime() {
+                    return (int) (System.currentTimeMillis() - startTime);
                 }
+
+                public void onFailure(Throwable t) {
+                    log.warn("onFailure - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
+                }
+
+                public void onSuccess(Packet packet) {
+                    log.debug("onSuccess - processingTime: {} msgtype: {} task: {}", getProcessingTime(), getMessageType(packet), task);
+                }
+
             });
+        } catch (TaskRejectedException tre) {
+            Throwable[] suppressed = tre.getSuppressed();
+            for (Throwable t : suppressed) {
+                log.warn("Suppressed exception on {}", task, t);
+            }
+            log.info("Rejected task: {}", task);
+        } catch (Throwable e) {
+            log.warn("Incoming message failed task: {}", task, e);
+            if (isDebug) {
+                log.debug("Execution rejected on {} - {} lock permits - decode: {} encode: {}", getSessionId(), RTMP.states[getStateCode()], decoderLock.availablePermits(), encoderLock.availablePermits());
+            }
         }
     }
 
@@ -1637,7 +1651,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
             }
         } else {
             // don't log the congestion entry unless there are more than X messages waiting
-            if (getPendingMessages() > MAX_MESSAGE_WAITING) {
+            if (getPendingMessages() > MIN_MESSAGE_FOR_LOGGING_WAITING_MESSAGE) {
                 int pingRtt = (int) ((now & 0xffffffffL)) - pongValue;
                 log.info("Pong delayed: session=[{}], ping response took [{} ms] to arrive. Connection may be congested, or loopback", new Object[] { getSessionId(), pingRtt });
             }
@@ -1712,26 +1726,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
         this.executor = executor;
     }
 
-    /**
-     * Thread pool for guarding deadlocks
-     *
-     * @return the deadlockGuardScheduler
-     */
-    @Deprecated(since = "1.3.29", forRemoval = true)
-    public ThreadPoolTaskScheduler getDeadlockGuardScheduler() {
-        return null;
-    }
-
-    /**
-     * Thread pool for guarding deadlocks
-     *
-     * @param deadlockGuardScheduler
-     *            the deadlockGuardScheduler to set
-     */
-    @Deprecated(since = "1.3.29", forRemoval = true)
-    public void setDeadlockGuardScheduler(ThreadPoolTaskScheduler deadlockGuardScheduler) {
-        // unused
-    }
 
     /**
      * Registers deferred result.
@@ -1845,17 +1839,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
     public void setReservedStreamsConcurrencyLevel(int reservedStreamsConcurrencyLevel) {
         this.reservedStreamsConcurrencyLevel = reservedStreamsConcurrencyLevel;
-    }
-
-    /**
-     * Specify the size of queue that will trigger audio packet dropping, disabled if it's 0
-     *
-     * @param executorQueueSizeToDropAudioPackets
-     *            queue size
-     */
-    @Deprecated(since = "1.3.29", forRemoval = true)
-    public void setExecutorQueueSizeToDropAudioPackets(Integer executorQueueSizeToDropAudioPackets) {
-        // unused
     }
 
     @Override

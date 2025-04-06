@@ -59,14 +59,6 @@ public class SharedObjectService implements ISharedObjectService {
     }
 
     /**
-     * @param maximumEventsPerUpdate
-     *            the maximumEventsPerUpdate to set
-     */
-    @Deprecated
-    public void setMaximumEventsPerUpdate(int maximumEventsPerUpdate) {
-    }
-
-    /**
      * Setter for persistence class name.
      *
      * @param name
