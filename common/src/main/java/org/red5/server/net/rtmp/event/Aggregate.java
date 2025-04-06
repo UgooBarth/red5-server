@@ -60,18 +60,6 @@ public class Aggregate extends ManageData implements IoConstants, IStreamPacket 
         setData(data);
     }
 
-    /**
-     * Create aggregate data event with given data buffer.
-     *
-     * @param data
-     *            aggregate data
-     * @param copy
-     *            true to use a copy of the data or false to use reference
-     */
-    public Aggregate(IoBuffer data, boolean copy) {
-        super(data,copy);
-    }
-
     /** {@inheritDoc} */
     @Override
     public byte getDataType() {

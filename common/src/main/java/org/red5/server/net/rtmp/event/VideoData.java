@@ -82,18 +82,6 @@ public class VideoData extends ManageData implements IoConstants, IStreamPacket 
         setData(data);
     }
 
-    /**
-     * Create video data event with given data buffer
-     *
-     * @param data
-     *            Video data
-     * @param copy
-     *            true to use a copy of the data or false to use reference
-     */
-    public VideoData(IoBuffer data, boolean copy) {
-        super(data,copy);
-    }
-
     /** {@inheritDoc} */
     @Override
     public byte getDataType() {

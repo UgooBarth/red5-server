@@ -52,18 +52,6 @@ public class AudioData extends ManageData implements IStreamPacket {
         setData(data);
     }
 
-    /**
-     * Create audio data event with given data buffer
-     *
-     * @param data
-     *            Audio data
-     * @param copy
-     *            true to use a copy of the data or false to use reference
-     */
-    public AudioData(IoBuffer data, boolean copy) {
-        super(data, copy);
-    }
-
     /** {@inheritDoc} */
     @Override
     public byte getDataType() {

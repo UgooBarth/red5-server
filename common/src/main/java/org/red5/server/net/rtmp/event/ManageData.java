@@ -7,6 +7,14 @@ import java.io.*;
 
 public abstract class ManageData extends BaseEvent implements IStreamData<AudioData> {
 
+    /**
+     * Create video data event with given data buffer
+     *
+     * @param data
+     *            Video data
+     * @param copy
+     *            true to use a copy of the data or false to use reference
+     */
     public ManageData(IoBuffer data, boolean copy) {
         super(Type.STREAM_DATA);
         if (copy) {
