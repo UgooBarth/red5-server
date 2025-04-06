@@ -13,7 +13,6 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -998,7 +997,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
     /** {@inheritDoc} */
     @Override
-    public void close() {
+    public void closeConnection() {
         if (closing.compareAndSet(false, true)) {
             if (isDebug) {
                 log.debug("close: {}", sessionId);
@@ -1036,7 +1035,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
                 }
             }
             // close the base connection - disconnect scopes and unregister client
-            super.close();
+            super.closeConnection();
             // kill all the collections etc
             channels.clear();
             streams.clear();

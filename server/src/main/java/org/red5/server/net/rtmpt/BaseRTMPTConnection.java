@@ -104,7 +104,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
     /** {@inheritDoc} */
     @Override
-    public void close() {
+    public void closeConnection() {
         closing = true;
         if (pendingOutMessages.size() > 0) {
             if (log.isTraceEnabled()) {
@@ -117,7 +117,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
             buffer.free();
             buffer = null;
         }
-        super.close();
+        super.closeConnection();
     }
 
     /**

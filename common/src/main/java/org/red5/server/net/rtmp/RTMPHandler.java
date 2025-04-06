@@ -248,7 +248,7 @@ public class RTMPHandler extends BaseRTMPHandler {
                 //if the "stream" action is not predefined a custom type will be returned
                 switch (streamAction) {
                     case DISCONNECT:
-                        conn.close();
+                        conn.closeConnection();
                         break;
                     case PUBLISH:
                     case PLAY:
@@ -449,7 +449,7 @@ public class RTMPHandler extends BaseRTMPHandler {
         } else {
             // not connected and attempting to send an invoke
             log.warn("Not connected, closing connection");
-            conn.close();
+            conn.closeConnection();
         }
         if (command instanceof Invoke) {
             if (isDebug) {

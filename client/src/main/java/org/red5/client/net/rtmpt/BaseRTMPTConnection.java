@@ -120,7 +120,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
     /** {@inheritDoc} */
     @Override
-    public void close() {
+    public void closeConnection() {
         log.debug("close - state: {}", state.getState());
         // Defer actual closing so we can send back pending messages to the client.
         closing = true;
@@ -146,7 +146,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
             }
             state.setState(RTMP.STATE_DISCONNECTED);
             pendingMessages.clear();
-            super.close();
+            super.closeConnection();
         }
     }
 

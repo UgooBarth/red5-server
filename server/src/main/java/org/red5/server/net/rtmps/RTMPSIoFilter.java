@@ -91,11 +91,11 @@ public class RTMPSIoFilter extends RTMPEIoFilter {
                                     session.write(s1);
                                 } else {
                                     log.warn("Client was rejected due to invalid handshake");
-                                    conn.close();
+                                    conn.closeConnection();
                                 }
                             } else {
                                 log.warn("Handshake is null");
-                                conn.close();
+                                conn.closeConnection();
                             }
                         }
                         break;
@@ -122,11 +122,11 @@ public class RTMPSIoFilter extends RTMPEIoFilter {
                                     // leave the remaining bytes in the buffer for the next step to handle / decrypt / decode
                                 } else {
                                     log.warn("Client was rejected due to invalid handshake");
-                                    conn.close();
+                                    conn.closeConnection();
                                 }
                             } else {
                                 log.warn("Handshake is null");
-                                conn.close();
+                                conn.closeConnection();
                             }
                         }
                     case RTMP.STATE_CONNECTED:

@@ -441,7 +441,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
     /**
      * Closes connection
      */
-    public void close() {
+    public void closeConnection() {
         if (closed) {
             log.debug("Already closed, nothing to do");
         } else {

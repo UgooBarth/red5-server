@@ -106,11 +106,11 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                                 completeConnection(session, conn, handshake);
                             }
                         } else {
-                            conn.close();
+                            conn.closeConnection();
                         }
                     } else {
                         log.warn("Handshake is missing from the session");
-                        conn.close();
+                        conn.closeConnection();
                     }
                 }
                 break;
@@ -130,7 +130,7 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                         completeConnection(session, conn, handshake);
                     } else {
                         log.warn("Handshake is missing from the session");
-                        conn.close();
+                        conn.closeConnection();
                     }
                 } else {
                     // don't fall through to connected process if we didn't have enough for the handshake

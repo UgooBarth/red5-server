@@ -18,7 +18,7 @@ public class RTMPTClientConnection extends BaseRTMPTConnection {
 
     @Override
     protected void onInactive() {
-        this.close();
+        this.closeConnection();
     }
 
     @Override

@@ -178,7 +178,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
             conn.sendPendingServiceCallsCloseError();
             // close the connection
             if (conn.getStateCode() != RTMP.STATE_DISCONNECTING) {
-                conn.close();
+                conn.closeConnection();
             }
             // set as disconnected
             conn.setStateCode(RTMP.STATE_DISCONNECTED);

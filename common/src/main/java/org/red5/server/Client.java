@@ -133,7 +133,7 @@ public class Client extends AttributeStore implements IClient {
                 // close all connections held to Red5 by client
                 for (IConnection con : getConnections()) {
                     try {
-                        con.close();
+                        con.closeConnection();
                     } catch (Exception e) {
                         // closing a connection calls into application code, so exception possible
                         log.error("Unexpected exception closing connection {}", e);

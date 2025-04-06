@@ -236,7 +236,7 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
             keepOnDisconnect = false;
             uninit();
             // disconnect all clients before unregistering
-            getClientConnections().forEach(IConnection::close);
+            getClientConnections().forEach(IConnection::closeConnection);
             // remove host name mappings
             if (hostnames != null && hostnames.length > 0) {
                 for (String element : hostnames) {

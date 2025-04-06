@@ -95,12 +95,12 @@ public class RTMPTConnection extends BaseRTMPTConnection {
     /** {@inheritDoc} */
     @Override
     protected void onInactive() {
-        close();
+        this.closeConnection();
     }
 
     /** {@inheritDoc} */
     @Override
-    public void close() {
+    public void closeConnection() {
         if (log.isDebugEnabled()) {
             log.debug("close {} state: {}", getSessionId(), RTMP.states[state.getState()]);
         }
@@ -115,7 +115,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
                 }
             }
             // now close
-            super.close();
+            super.closeConnection();
             if (servlet != null) {
                 servlet = null;
             }

@@ -94,11 +94,11 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                                 session.write(s1);
                             } else {
                                 log.warn("Client was rejected due to invalid handshake");
-                                conn.close();
+                                conn.closeConnection();
                             }
                         } else {
                             log.warn("Handshake is null");
-                            conn.close();
+                            conn.closeConnection();
                         }
                     }
                     break;
@@ -128,11 +128,11 @@ public class RTMPEIoFilter extends IoFilterAdapter {
                                 // leave the remaining bytes in the buffer for the next step to handle / decrypt / decode
                             } else {
                                 log.warn("Client was rejected due to invalid handshake");
-                                conn.close();
+                                conn.closeConnection();
                             }
                         } else {
                             log.warn("Handshake is null");
-                            conn.close();
+                            conn.closeConnection();
                         }
                     } else {
                         // don't fall through to connected process if we didn't have enough for the handshake

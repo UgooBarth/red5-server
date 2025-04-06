@@ -140,7 +140,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
                 // clear the buffer to eliminate memory leaks when we can't parse protocol
                 buffer.clear();
                 // close connection because we can't parse data from it
-                conn.close();
+                conn.closeConnection();
             } finally {
                 //if (isTrace) {
                 //    log.trace("decodeBuffer - post decode input buffer position: {} remaining: {}", buffer.position(), buffer.remaining());

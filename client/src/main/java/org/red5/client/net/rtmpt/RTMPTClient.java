@@ -115,7 +115,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
                         }
                     } else {
                         log.warn("Handshake failed on S0S1 processing");
-                        conn.close();
+                        conn.closeConnection();
                     }
                     break;
                 case RTMP.STATE_HANDSHAKE:

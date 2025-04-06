@@ -279,7 +279,7 @@ public class RTMPTServlet extends HttpServlet {
                 // using "Exception" is meant to catch any exception that would occur when doing a write
                 // this can be an IOException or a container specific one like ClientAbortException from catalina
                 log.warn("Exception returning outgoing data", ex);
-                conn.close();
+                conn.closeConnection();
             }
         } else {
             log.debug("No messages to send");
@@ -365,7 +365,7 @@ public class RTMPTServlet extends HttpServlet {
         if (connection != null) {
             log.debug("Pending messges on close: {}", connection.getPendingMessages());
             returnMessage((byte) 0, resp);
-            connection.close();
+            connection.closeConnection();
         } else {
             handleBadRequest(String.format("Close: unknown client session: %s", requestInfo.get().getSessionId()), resp);
         }
@@ -423,7 +423,7 @@ public class RTMPTServlet extends HttpServlet {
                             conn.writeRaw(s1);
                         } else {
                             log.warn("Client was rejected due to invalid handshake");
-                            conn.close();
+                            conn.closeConnection();
                         }
                     }
                     break;
@@ -451,7 +451,7 @@ public class RTMPTServlet extends HttpServlet {
                             session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
                         } else {
                             log.warn("Client was rejected due to invalid handshake");
-                            conn.close();
+                            conn.closeConnection();
                         }
                     }
                     // let the logic flow into connected to catch the remaining bytes that probably contain
@@ -620,7 +620,7 @@ public class RTMPTServlet extends HttpServlet {
         List<BaseConnection> conns = manager.getAllConnections().stream().filter(c -> (c instanceof RTMPTConnection)).collect(Collectors.toList());
         log.debug("Connections destroy: {}", conns);
         conns.forEach(conn -> {
-            conn.close();
+            conn.closeConnection();
         });
         super.destroy();
     }

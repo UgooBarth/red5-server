@@ -17,7 +17,7 @@ public class ClientMethodHander {
         String code = status.get("code").toString();
         if ("NetStream.Play.Stop".equals(code)) {
             log.debug("Playback stopped");
-            conn.close();
+            conn.closeConnection();
         }
 
     }

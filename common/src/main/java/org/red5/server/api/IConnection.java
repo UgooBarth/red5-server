@@ -119,7 +119,7 @@ public interface IConnection extends ICoreObject, ICastingAttributeStore {
     /**
      * Close this connection. This will disconnect the client from the associated scope.
      */
-    void close();
+    void closeConnection();
 
     /**
      * Return the parameters that were given in the call to "connect".
