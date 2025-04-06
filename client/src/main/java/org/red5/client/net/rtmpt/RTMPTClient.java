@@ -100,13 +100,8 @@ public class RTMPTClient extends BaseRTMPClientHandler {
                             log.debug("Handshake - client phase 2 - size: {}", in.remaining());
                             byte[] s2 = new byte[Constants.HANDSHAKE_SIZE];
                             in.get(s2);
-                            if (handshake.decodeServerResponse2(s2)) {
-                                //                                conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-                                //                                conn.setStateCode(RTMP.STATE_CONNECTED);
-                                //                                connectionOpened(conn);
-                            } else {
+                            if (!handshake.decodeServerResponse2(s2)) {
                                 log.warn("Handshake failed on S2 processing");
-                                //conn.close();
                             }
                             // open regardless of server type
                             conn.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
