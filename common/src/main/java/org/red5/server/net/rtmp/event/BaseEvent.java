@@ -13,6 +13,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
