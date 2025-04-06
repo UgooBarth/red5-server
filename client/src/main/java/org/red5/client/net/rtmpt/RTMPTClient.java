@@ -42,6 +42,14 @@ public class RTMPTClient extends BaseRTMPClientHandler {
         codecFactory.init();
     }
 
+    public RTMPProtocolDecoder getDecoder() {
+        return codecFactory.getRTMPDecoder();
+    }
+
+    public RTMPProtocolEncoder getEncoder() {
+        return codecFactory.getRTMPEncoder();
+    }
+
     @Override
     public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
         Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
@@ -143,14 +151,6 @@ public class RTMPTClient extends BaseRTMPClientHandler {
             connector.interrupt();
         }
         super.disconnect();
-    }
-
-    public RTMPProtocolDecoder getDecoder() {
-        return codecFactory.getRTMPDecoder();
-    }
-
-    public RTMPProtocolEncoder getEncoder() {
-        return codecFactory.getRTMPEncoder();
     }
 
 }
